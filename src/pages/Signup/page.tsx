@@ -7,26 +7,42 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
-  FormControl, FormField,
+  FormControl,
+  FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store";
+import { useMutation } from "@tanstack/react-query";
+import { register } from "@/api/routes";
+import { AuthUser } from "@/types/form";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
+  const setUser = useAuthStore((state) => state.setUser);
+  const navigate = useNavigate();
+  const { mutate: registerUser, isPending } = useMutation({
+    mutationFn: register,
+    onSuccess: (user: AuthUser) => {
+      setUser(user);
+      navigate("/");
+    },
+  });
+
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
       email: "",
-      name: "",
+      username: "",
       password: "",
       confirmPassword: "",
     },
   });
 
   const onSubmit = (data: z.infer<typeof RegisterSchema>) => {
-    console.log("submit", data);
+    registerUser(data);
   };
 
   return (
@@ -42,10 +58,10 @@ const Signup = () => {
             <div className="space-y-4">
               <FormField
                 control={form.control}
-                name={"name"}
+                name={"username"}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Username</FormLabel>
 
                     <FormControl>
                       <Input {...field} type="text" placeholder="John doe" />

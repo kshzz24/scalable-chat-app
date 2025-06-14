@@ -14,9 +14,25 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { login } from "@/api/routes";
+import { AuthUser } from "@/types/form";
+import { useAuthStore } from "@/store";
 // Zod validation schema
 
 const LoginPage = () => {
+  const setUser = useAuthStore((state) => state.setUser);
+
+  const navigate = useNavigate();
+  const { mutate: loginUser, isPending } = useMutation({
+    mutationFn: login,
+    onSuccess: (user: AuthUser) => {
+      setUser(user);
+      navigate("/");
+    },
+  });
+
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -26,7 +42,7 @@ const LoginPage = () => {
   });
 
   const onSubmit = (data: z.infer<typeof LoginSchema>) => {
-    console.log("submit", data);
+    loginUser(data);
   };
   return (
     <AuthLayout>
@@ -73,7 +89,7 @@ const LoginPage = () => {
               />{" "}
             </div>
             <Button type="submit" className="w-full">
-              Register
+              Login
             </Button>
           </form>
         </Form>
