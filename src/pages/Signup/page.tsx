@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store";
 import { useMutation } from "@tanstack/react-query";
 import { register } from "@/api/routes";
-import { AuthUser } from "@/types/form";
+import { AuthResponse } from "@/types/form";
 import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
@@ -25,8 +25,8 @@ const Signup = () => {
   const navigate = useNavigate();
   const { mutate: registerUser, isPending } = useMutation({
     mutationFn: register,
-    onSuccess: (user: AuthUser) => {
-      setUser(user);
+    onSuccess: (user: AuthResponse) => {
+      setUser(user?.user);
       navigate("/");
     },
   });

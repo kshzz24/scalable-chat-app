@@ -1,4 +1,4 @@
-import { ReactNode, useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   MessageCircle,
   Users,
@@ -10,15 +10,17 @@ import {
   LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store";
+import { logout } from "@/api/routes";
+import SendInviteComponent from "@/pages/home/_components/SendInviteComponent";
+import NotificationsModal from "@/pages/home/_components/NotificationsModal";
 
 interface NavItemProps {
   icon: LucideIcon;
   label: string;
   active?: boolean;
 }
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/store";
-import { logout } from "@/api/routes";
 const NavItem = ({ icon: Icon, label, active = false }: NavItemProps) => {
   const location = useLocation();
 
@@ -33,10 +35,6 @@ const NavItem = ({ icon: Icon, label, active = false }: NavItemProps) => {
 
   // Auto-detect active state based on current route if not explicitly provided
   const isActive = active || location.pathname === route;
-
-  if (!route) {
-    return null; // Don't render if no route is defined
-  }
 
   return (
     <Link
@@ -60,6 +58,9 @@ const NavItem = ({ icon: Icon, label, active = false }: NavItemProps) => {
 const HomeLayout = () => {
   const clearUser = useAuthStore((state) => state.clearUser);
   const navigate = useNavigate();
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] =
+    useState<boolean>(false);
 
   const handleLogOut = useCallback(async () => {
     try {
@@ -69,6 +70,22 @@ const HomeLayout = () => {
     } catch (err) {
       console.error("Logout failed", err);
     }
+  }, []);
+
+  const handleSendInvite = useCallback(() => {
+    setIsInviteModalOpen(true);
+  }, []);
+
+  const handleNotification = useCallback(() => {
+    setIsNotificationModalOpen(true);
+  }, []);
+
+  const handleCloseInviteModal = useCallback(() => {
+    setIsInviteModalOpen(false);
+  }, []);
+
+  const handleCloseNotificationModal = useCallback(() => {
+    setIsNotificationModalOpen(false);
   }, []);
 
   return (
@@ -83,6 +100,7 @@ const HomeLayout = () => {
         {/* Right Side Buttons */}
         <div className="flex items-center space-x-3">
           <Button
+            onClick={handleSendInvite}
             variant="outline"
             size="sm"
             className="flex items-center gap-2 bg-gray-800/50 border-gray-600 text-gray-200!  cursor-pointer hover:bg-gray-700/70 hover:border-gray-500"
@@ -91,6 +109,7 @@ const HomeLayout = () => {
             Send Invite
           </Button>
           <Button
+            onClick={handleNotification}
             variant="outline"
             size="sm"
             className="relative bg-gray-800/50 border-gray-600 cursor-pointer text-gray-200! hover:bg-gray-700/70 hover:border-gray-500"
@@ -114,7 +133,7 @@ const HomeLayout = () => {
       </header>
 
       {/* Left Sidebar */}
-      <div className="w-64 bg-gray-900/70 backdrop-blur-xl border-r border-gray-700/50 flex flex-col ">
+      <div className="w-64 z-10 bg-gray-900/70 backdrop-blur-xl border-r border-gray-700/50 flex flex-col mt-[65px] h-full fixed">
         {/* Sidebar Navigation */}
         <div className="flex-1 p-6">
           <nav className="space-y-3">
@@ -127,9 +146,20 @@ const HomeLayout = () => {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-hidden">
+      <main
+        className="absolute top-[65px] left-[256px]"
+        style={{ height: "calc(100% - 65px )", width: "calc( 100% - 256px )" }}
+      >
         <Outlet />
       </main>
+      <SendInviteComponent
+        isOpen={isInviteModalOpen}
+        onClose={handleCloseInviteModal}
+      />
+      <NotificationsModal
+        isOpen={isNotificationModalOpen}
+        onClose={handleCloseNotificationModal}
+      />
     </div>
   );
 };

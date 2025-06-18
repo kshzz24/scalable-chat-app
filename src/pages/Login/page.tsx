@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { login } from "@/api/routes";
-import { AuthUser } from "@/types/form";
+import { AuthResponse } from "@/types/form";
 import { useAuthStore } from "@/store";
 // Zod validation schema
 
@@ -27,8 +27,9 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { mutate: loginUser, isPending } = useMutation({
     mutationFn: login,
-    onSuccess: (user: AuthUser) => {
-      setUser(user);
+    onSuccess: (user: AuthResponse) => {
+      console.log(user, "userDetails via login");
+      setUser({ ...user.user, token: user.token });
       navigate("/");
     },
   });
