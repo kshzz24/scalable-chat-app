@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 // import { createChat } from "@/api/routes"; // your API call
 import { useAuthStore, useContactsStore } from "@/store";
-import { getContactDetails } from "@/api/routes";
+import { createChat, getContactDetails } from "@/api/routes";
 
 interface NewChatModalProps {
   isOpen: boolean;
@@ -25,7 +25,6 @@ interface NewChatModalProps {
 const NewChatModal = ({ isOpen, onClose }: NewChatModalProps) => {
   const user = useAuthStore((state) => state.user);
   const setContacts = useContactsStore((state) => state.setContacts);
-
   const [isGroup, setIsGroup] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [groupName, setGroupName] = useState("");
@@ -36,8 +35,6 @@ const NewChatModal = ({ isOpen, onClose }: NewChatModalProps) => {
     queryKey: ["get-contact-details"],
     queryFn: getContactDetails,
     enabled: isOpen,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
   });
 
   useEffect(() => {
@@ -63,15 +60,15 @@ const NewChatModal = ({ isOpen, onClose }: NewChatModalProps) => {
     [isGroup]
   );
 
-  //   const { mutate: createNewChat, isPending } = useMutation({
-  //     mutationFn: createChat,
-  //     onSuccess: () => {
-  //       toast.success("Chat created!");
-  //       onClose();
-  //       queryClient.invalidateQueries({ queryKey: ["chats"] });
-  //     },
-  //     onError: () => toast.error("Failed to create chat"),
-  //   });
+  const { mutate: createNewChat, isPending } = useMutation({
+    mutationFn: createChat,
+    onSuccess: () => {
+      toast.success("Chat created!");
+      onClose();
+      queryClient.invalidateQueries({ queryKey: ["chats-created"] });
+    },
+    onError: () => toast.error("Failed to create chat"),
+  });
 
   const handleCreateChat = useCallback(() => {
     if (selectedUsers.length === 0) {
@@ -82,17 +79,18 @@ const NewChatModal = ({ isOpen, onClose }: NewChatModalProps) => {
       return toast.error("Select at least 2 users for a group chat");
     }
 
-    // createNewChat({
-    //   isGroup,
-    //   recipients: selectedUsers,
-    //   name: isGroup ? groupName : undefined,
-    // });
+    createNewChat({
+      isGroup,
+      recipients: selectedUsers,
+      name: isGroup ? groupName : undefined,
+    });
   }, [isGroup, selectedUsers, groupName]);
 
   const allContacts = useMemo(() => {
     if (isLoading) return [];
-    return contactDetails || [];
-  }, []);
+    return contactDetails ?? [];
+  }, [isLoading, contactDetails]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md bg-gray-900 border-gray-700">
@@ -151,6 +149,7 @@ const NewChatModal = ({ isOpen, onClose }: NewChatModalProps) => {
                     <p className="text-sm text-gray-400">{contact.email}</p>
                   </div>
                   <Checkbox
+                    className="cursor-pointer"
                     checked={selectedUsers.includes(contact._id)}
                     onCheckedChange={() => handleUserToggle(contact._id)}
                   />

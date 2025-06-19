@@ -41,3 +41,8 @@ export type allUserType = {
 
   _id: string;
 };
+
+
+export type Chat = {
+
+}

@@ -136,3 +136,71 @@ export const rejectInvite = async (inviteId: string) => {
 
   return res.data;
 };
+
+export const createChat = async ({
+  isGroup,
+  recipients,
+  name,
+}: {
+  isGroup: boolean;
+  recipients: string[];
+  name?: string;
+}) => {
+  const token = useAuthStore.getState().user?.token;
+
+  if (!token) {
+    throw new Error("User not authenticated");
+  }
+
+  const res = await axios.post(
+    `${API_BASE_URL}/chat/create`,
+    { isGroup, recipients, name },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return res.data;
+};
+
+export const getAllChats = async () => {
+  const token = useAuthStore.getState().user?.token;
+
+  if (!token) {
+    throw new Error("User not authenticated");
+  }
+
+  const res = await axios.get(
+    `${API_BASE_URL}/chat/all`,
+
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return res.data?.chats;
+};
+
+export const getChatDetails = async (id: string) => {
+  const token = useAuthStore.getState().user?.token;
+
+  if (!token) {
+    throw new Error("User not authenticated");
+  }
+
+  const res = await axios.get(
+    `${API_BASE_URL}/chat${id}`,
+
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return res.data?.chats;
+};
